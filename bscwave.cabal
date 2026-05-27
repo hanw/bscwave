@@ -1,0 +1,10 @@
+cabal-version:  3.0
+name:           bscwave
+version:        0.1.0.0
+
+library
+  exposed-modules: Bscwave.FFI, Bscwave.Sim, Bscwave.Waveform, Bscwave.Render
+  hs-source-dirs:  src
+  build-depends:   base, containers, vector
+  default-language: Haskell2010
+
