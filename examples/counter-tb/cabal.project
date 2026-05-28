@@ -1,0 +1,5 @@
+packages: .
+          ../..
+
+program-options
+  ghc-options: -optl-Wl,--copy-dt-needed-entries -optl-Wl,-rpath-link,./src

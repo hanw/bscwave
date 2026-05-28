@@ -1,0 +1,10 @@
+dist-newstyle/
+libsim.so
+src/*.ba
+src/*.bo
+src/*.cxx
+src/*.h
+src/*.o
+src/sim.so
+src/sim.so.so
+src/libsim.so
