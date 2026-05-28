@@ -11,6 +11,7 @@
 // so any bsc-generated sim.so loaded into the same address space works.
 
 #include "bluesim_kernel_api.h"
+#include "bs_wide_data.h"
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
@@ -90,7 +91,11 @@ int bsim_set_param(void* p, const char* name, const uint32_t* words, int /*nword
     *static_cast<uint64_t*>(ptr) =
       static_cast<uint64_t>(words[0]) | (static_cast<uint64_t>(words[1]) << 32);
   } else {
-    std::memcpy(ptr, words, ((bits + 31) / 32) * 4);
+    // bsc stores values wider than 64 bits as a WideData object whose
+    // public `data` field points at the actual uint32 array; bk_get_ptr
+    // returns the WideData* itself, not the raw bits.
+    WideData* wd = static_cast<WideData*>(ptr);
+    std::memcpy(wd->data, words, ((bits + 31) / 32) * 4);
   }
   return 0;
 }
@@ -111,7 +116,8 @@ int bsim_get_result(void* p, const char* name, uint32_t* words, int nwords) {
     words[0] = static_cast<uint32_t>(v);
     if (nwords > 1) words[1] = static_cast<uint32_t>(v >> 32);
   } else {
-    std::memcpy(words, ptr, ((bits + 31) / 32) * 4);
+    WideData* wd = static_cast<WideData*>(ptr);
+    std::memcpy(words, wd->data, ((bits + 31) / 32) * 4);
   }
   return 0;
 }
