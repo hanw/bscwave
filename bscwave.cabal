@@ -3,8 +3,14 @@ name:           bscwave
 version:        0.1.0.0
 
 library
-  exposed-modules: Bscwave.FFI, Bscwave.Sim, Bscwave.Waveform, Bscwave.Render
+  exposed-modules: Bscwave.FFI, Bscwave.Interface, Bscwave.Sim, Bscwave.Waveform, Bscwave.Render
   hs-source-dirs:  src
   build-depends:   base, containers, vector
+  default-language: Haskell2010
+
+executable bscwave-gen-ports
+  main-is:          GenPorts.hs
+  hs-source-dirs:   app
+  build-depends:    base, containers, filepath
   default-language: Haskell2010
 

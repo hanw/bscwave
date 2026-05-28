@@ -1,21 +1,23 @@
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
+import Bscwave.Interface
 import Bscwave.Sim
-import Bscwave.Waveform (Waveform)
 import qualified Bscwave.Waveform as Waveform
 import qualified Bscwave.Render as Render
-import Data.IORef
+import qualified MkCounter as C
 
-testbench :: IO Waveform
+testbench :: IO Waveform.Waveform
 testbench = do
-  sim <- create "mkCounter" [("EN_clear",1),("EN_incr",1)] [("count",8)]
+  sim <- create @C.Inputs @C.Outputs C.modelName
   (waves, sim') <- Waveform.create sim
-  let step cl inc = writeIORef (input sim' "EN_clear") cl
-                 >> writeIORef (input sim' "EN_incr") inc
-                 >> simStep sim'
+  let i = inputs sim'
+      step cl ic = do
+        writePort (C.en_clear i) cl
+        writePort (C.en_incr  i) ic
+        simStep sim'
   mapM_ (uncurry step) [(0,0),(0,1),(0,1),(1,0),(0,0),(0,0)]
-  return waves
+  pure waves
 
 main :: IO ()
 main = testbench >>= Render.print
-

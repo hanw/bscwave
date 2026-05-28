@@ -35,5 +35,12 @@ g++ -shared -fPIC \
 cd ..
 ln -sf src/libsim.so libsim.so
 
+# 3. Generate the typed port record from the bsc-emitted .cxx so the
+#    testbench can reference inputs/outputs by name with widths checked
+#    at compile time.
+(cd ../.. && cabal --project-dir=. run -v0 bscwave-gen-ports -- \
+   examples/counter-tb/src/mkCounter.cxx \
+   -o examples/counter-tb/app/MkCounter.hs)
+
 echo
 echo "Built. Now run:   LD_LIBRARY_PATH=./src cabal run testbench"

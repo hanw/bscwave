@@ -4,6 +4,7 @@ version:         0.1.0.0
 
 executable testbench
   main-is:          Main.hs
+  other-modules:    MkCounter
   hs-source-dirs:   app
   extra-libraries:  sim
   extra-lib-dirs:   ., src
