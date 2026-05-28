@@ -46,7 +46,10 @@ getPort m name w = withCString name $ \cn ->
   where n = nw w
 
 mkPort :: forall n. KnownNat n => String -> IO (Port n)
-mkPort name = Port name <$> newIORef 0
+mkPort name = do
+  ref <- newIORef 0
+  fmt <- newIORef (defaultFormat @n)
+  pure (Port name ref fmt)
 
 create
   :: forall i o. (Interface i, Interface o)

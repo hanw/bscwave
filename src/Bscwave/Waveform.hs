@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 module Bscwave.Waveform
   ( WaveData (..)
   , Wave (..)
@@ -14,7 +15,13 @@ import Data.IORef
 import Bscwave.Sim (Sim (..))
 import Bscwave.Interface
 
-data WaveData = WaveData { wdWidth :: Int, wdSamples :: IORef [Integer] }
+-- | A captured signal: bit width, the sample list, and the display
+-- formatter snapshotted from the originating 'Port' at capture time.
+data WaveData = WaveData
+  { wdWidth   :: Int
+  , wdSamples :: IORef [Integer]
+  , wdFormat  :: Integer -> String
+  }
 data Wave     = Clock String | Binary String WaveData | WaveN String Int WaveData
 data Waveform = Waveform { wfWaves :: [Wave] }
 
@@ -29,17 +36,21 @@ waveName (Binary n _) = n
 waveName (WaveN n _ _) = n
 
 -- | For each port, build a 'Wave' plus the IO action that snapshots its
--- current IORef value into the wave's sample list.
+-- current IORef value into the wave's sample list. The formatter is read
+-- here (once) so post-capture mutations of @portFormat@ don't retroactively
+-- change how earlier samples display.
 collect :: Interface r => r Port -> IO [(Wave, IO ())]
 collect rec = do
   acc <- newIORef []
   traverseI_ (\name port -> do
       let w = portWidth port
       samples <- newIORef []
-      let wd   = WaveData w samples
-          wave = if w == 1 then Binary name wd else WaveN name w wd
-          cap  = do v <- readIORef (portRef port)
-                    modifyIORef' samples (++ [v])
+      fmt     <- readIORef (portFormat port)
+      let intFmt v = fmt (bit v)
+          wd       = WaveData w samples intFmt
+          wave     = if w == 1 then Binary name wd else WaveN name w wd
+          cap      = do v <- readIORef (portRef port)
+                        modifyIORef' samples (++ [v])
       modifyIORef' acc ((wave, cap):)
     ) rec
   reverse <$> readIORef acc

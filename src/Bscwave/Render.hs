@@ -1,6 +1,5 @@
 module Bscwave.Render where
 import Data.IORef
-import Numeric (showHex)
 import Bscwave.Waveform
 
 sigInside :: Int
@@ -40,17 +39,16 @@ renderWave _ (Binary nm d) = do
     [ (nm, concat tops)
     , ("", concat bots)
     ]
-renderWave _ (WaveN nm w d) = do
+renderWave _ (WaveN nm _ d) = do
   s <- readIORef (wdSamples d)
-  let nibbles = (w + 3) `div` 4
-      hexStr v = let h = showHex v "" in replicate (nibbles - length h) '0' ++ h
-      runs = groupRuns s
+  let fmt   = wdFormat d
+      runs  = groupRuns s
       pairs = zip (Nothing : map (Just . fst) runs) runs
       renderRun (prev, (v, len)) =
         let wid = len * 8
             isTrans = case prev of { Nothing -> False; Just p -> p /= v }
         in ( (if isTrans then '┬' else '─') : replicate (wid - 1) '─'
-           , (if isTrans then '│' else ' ') : padR (wid - 1) (hexStr v)
+           , (if isTrans then '│' else ' ') : padR (wid - 1) (fmt v)
            , (if isTrans then '┴' else '─') : replicate (wid - 1) '─'
            )
       (tops, mids, bots) = unzip3 (map renderRun pairs)
