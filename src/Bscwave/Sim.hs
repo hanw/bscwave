@@ -36,9 +36,9 @@ getPort m name w = withCString name $ \cn ->
 mkPortRef :: (String, Int) -> IO Port
 mkPortRef (name, w) = Port name w <$> newIORef 0
 
-create :: [(String,Int)] -> [(String,Int)] -> IO Sim
-create inPorts outPorts = do
-  m    <- bsim_create 0 nullPtr
+create :: String -> [(String,Int)] -> [(String,Int)] -> IO Sim
+create modelName inPorts outPorts = do
+  m    <- withCString modelName bsim_create
   ins  <- Map.fromList <$> mapM (\p@(n,_) -> (n,) <$> mkPortRef p) inPorts
   outs <- Map.fromList <$> mapM (\p@(n,_) -> (n,) <$> mkPortRef p) outPorts
   let step = do
